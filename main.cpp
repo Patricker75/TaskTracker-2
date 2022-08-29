@@ -1,103 +1,53 @@
 #include <iostream>
 #include <sstream>
 
-#include "DataManager.h"
-#include "Queue.h"
-
-#include "TagHashTable.h"
+#include "Classes/TaskTree.h"
 
 using namespace std;
 
-static DataManager manager;
-
-// Task List to String 
-string ListToString(LinkedList<Task>* list) {
-    stringstream out;
-
-    // currentNode->key == currentTask
-    Node<Task>* currentNode = list->GetHead();
-
-    // Outputs Due Date
-    out << currentNode->key.GetDueDate() << endl;
-
-    while (currentNode != nullptr) {
-        out << currentNode->key.GetName() << endl;
-
-        currentNode = currentNode->next;
-    }
-
-    return out.str();
-}
-
-// Tag List to String
-string ListToString(string tag, LinkedList<Task*>* list) {
-    stringstream out;
-
-    Node<Task*>* currentNode = list->GetHead();
-
-    out << tag << endl;
-
-    while (currentNode != nullptr) {
-        out << currentNode->key->GetName() << endl;
-
-        currentNode = currentNode->next;
-    }
-
-    return out.str();
-}
-
-template <class K, class V>
-void PrintTaskTree(Node<K, V>* node) {
+template <class T>
+void PrintTaskTree(Node<T>* node) {
     if (node == nullptr) {
         return;
     }
 
     PrintTaskTree(node->left);
 
-    cout << ListToString(node->value) << endl;
+    cout << node->data << endl;
 
     PrintTaskTree(node->right);
 }
 
-void Run() {
-    PrintTaskTree(manager.GetRoot());
+template <class T>
+void PrintLinkedList(Node<T>* node) {
+    while (node != nullptr) {
+        cout << node->data << endl;
 
-    // string tag = "cheese eater";
-    // LinkedList<Task*>* tagList = manager.SearchTag(tag);
-    // cout << ListToString(tag, tagList) << endl;
-
-    LinkedList<Task>* list = manager.SearchDate(6);
-    int size = list->GetSize();
-    Task* ptrArray[size];
-
-    Node<Task>* currentNode = list->GetHead();
-
-    for (int i = 0; i < size; i++) {
-        ptrArray[i] = &currentNode->value;
-
-        currentNode = currentNode->next;
-    }
-    
-    for (int i = 0; i < size; i++) {
-        cout << (i + 1) << " - " << ptrArray[i]->GetName() << endl;
+        node = node->next;
     }
 }
 
 int main(int argc, char* argv []) {
-    Task t1("test", 6);
-    Task t2("testing", 6);
-    Task t3("bing chilling", 1);
-    
-    t1.AddTag("testing");
-    t2.AddTag("cheese eater");
-    t3.AddTag("testing");
-    t3.AddTag("cheese eater");
+    TaskTree* tree = new TaskTree();
 
-    manager.AddTask(t1);
-    manager.AddTask(t2);
-    manager.AddTask(t3);
+    Task t1("test one", 2019);
+    Task t2("test two", 2019);
+    Task t3("test three", 10);
 
-    Run();
+    Task* ptr1 = tree->Insert(t1);
+    Task* ptr2 = tree->Insert(t2);
+    Task* ptr3 = tree->Insert(t3);
+
+    LinkedList<Task>* list = tree->Search(ptr2->GetDueDate())->GetList();
+
+    tree->RemoveTask(ptr1);
+    tree->RemoveTask(ptr2);
+
+    TasksList* t = tree->Search(ptr2->GetDueDate());
+
+    list = tree->Search(ptr2->GetDueDate())->GetList();
+
+    PrintLinkedList(list->GetHead());
 
     return 0;
 }

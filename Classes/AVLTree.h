@@ -3,21 +3,21 @@
 
 #include "BSTree.h"
 
-template <class K, class V = K>
-class AVLTree : public BSTree<K, V> {
+template <class T>
+class AVLTree : public BSTree<T> {
 private:
     /*
         Parameters:
         currentNode - pointer to current iterrating node
         newNde - pointer to new node to insert
     */
-    Node<K, V>* Insert(Node<K, V>* currentNode, Node<K, V>* newNode) {
+    Node<T>* Insert(Node<T>* currentNode, Node<T>* newNode) {
         if (this->root == nullptr) {
             this->root = newNode;
             return this->root;
         }
 
-        if (newNode->key < currentNode->key) {
+        if (newNode->data < currentNode->data) {
             if (currentNode->left == nullptr) {
                 currentNode->left = newNode;
             }
@@ -25,7 +25,7 @@ private:
                 currentNode->left = this->Insert(currentNode->left, newNode);
             }
         }
-        else if (newNode->key > currentNode->key) {
+        else if (newNode->data > currentNode->data) {
             if (currentNode->right == nullptr) {
                 currentNode->right = newNode;
             }
@@ -33,51 +33,46 @@ private:
                 currentNode->right = this->Insert(currentNode->right, newNode);
             }
         }
-        else if (newNode->key == currentNode->key) {
-            newNode = currentNode;
-            return this->Balance(currentNode);
-        }
 
         currentNode->height = this->CalculateHeight(currentNode);
 
         return this->Balance(currentNode);
     }
 
-    Node<K, V>* Delete(Node<K, V>* node, K key) {
+    Node<T>* Delete(Node<T>* node, T key) {
         if (node == nullptr) {
             return nullptr;
         }
-        if (node->key == key) {
+        if (node->data == key) {
             if (node->left != nullptr && node->right != nullptr) {
-                Node<K, V>* successor = node->right;
+                Node<T>* successor = node->right;
 
                 while (successor->left != nullptr) {
                     successor = successor->left;
                 }
 
-                node->key = successor->key;
-                node->value = successor->value;
+                node->data = successor->data;
 
-                node->right = this->Delete(node->right, successor->key);
+                node->right = this->Delete(node->right, successor->data);
 
                 node->height = this->CalculateHeight(node);
 
                 return this->Balance(node);
             }
             else if (node->left != nullptr) {
-                Node<K, V>* temp = node->left;
+                Node<T>* temp = node->left;
 
                 delete node;
 
-                temp->height = this->CalculateHeight(node);
+                temp->height = this->CalculateHeight(temp);
                 return this->Balance(temp);
             }
             else if (node->right != nullptr) {
-                Node<K, V>* temp = node->right;
+                Node<T>* temp = node->right;
 
                 delete node;
                 
-                temp->height = this->CalculateHeight(node);
+                temp->height = this->CalculateHeight(temp);
                 return this->Balance(temp);
             }
             else {
@@ -86,10 +81,10 @@ private:
                 return nullptr;
             }
         }
-        else if (key < node->key) {
+        else if (key < node->data) {
             node->left = this->Delete(node->left, key);
         }
-        else if (key > node->key) {
+        else if (key > node->data) {
             node->right = this->Delete(node->right, key);
         }
 
@@ -98,9 +93,9 @@ private:
         return node;
     }
 
-    Node<K, V>* LeftRotate(Node<K, V>* node) {
-        Node<K, V>* newRoot = node->right;
-        Node<K, V>* temp = newRoot->left;
+    Node<T>* LeftRotate(Node<T>* node) {
+        Node<T>* newRoot = node->right;
+        Node<T>* temp = newRoot->left;
 
         newRoot->left = node;
         node->right = temp;
@@ -111,9 +106,9 @@ private:
         return newRoot;
     }
 
-    Node<K, V>* RightRotate(Node<K, V>* node) {
-        Node<K, V>* newRoot = node->left;
-        Node<K, V>* temp = newRoot->right;
+    Node<T>* RightRotate(Node<T>* node) {
+        Node<T>* newRoot = node->left;
+        Node<T>* temp = newRoot->right;
 
         newRoot->right = node;
         node->left = temp;
@@ -124,7 +119,7 @@ private:
         return newRoot;
     }
 
-    int CalculateBalanceFactor(Node<K, V>* node) {
+    int CalculateBalanceFactor(Node<T>* node) {
         int leftHeight = 0;
         int rightHeight = 0;
 
@@ -138,7 +133,7 @@ private:
         return leftHeight - rightHeight;
     }
 
-    Node<K, V>* Balance(Node<K, V>* node) {
+    Node<T>* Balance(Node<T>* node) {
         int balanceFactor = this->CalculateBalanceFactor(node);
 
         /*
@@ -179,17 +174,17 @@ private:
         return node;
     }
 public:
-    AVLTree() : BSTree<K, V>() {}
-
-    V* Insert(K key, V value) {
-        Node<K, V>* newNode = new Node<K, V>(key, value);
-        
-        this->root = this->Insert(this->root, newNode);
-        
-        return &newNode->value;
-    }
+    AVLTree() : BSTree<T>() {};
     
-    void Delete(K key) {
+    T* Insert(T data) {
+        Node<T>* newNode = new Node<T>(data);
+
+        this->root = this->Insert(this->root, newNode);
+
+        return &newNode->data;
+    }
+
+    void Delete(T key) {
         this->root = this->Delete(this->root, key);
     }
 };

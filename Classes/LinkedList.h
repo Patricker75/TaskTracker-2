@@ -3,11 +3,11 @@
 
 #include "Node.h"
 
-template <class K, class V = K>
+template <class T>
 class LinkedList {
 private:
-    Node<K, V>* head;
-    Node<K, V>* tail;
+    Node<T>* head;
+    Node<T>* tail;
 
     int size;
 public:
@@ -18,46 +18,42 @@ public:
         this->size = 0;
     };
 
-    V* Insert(K key) {
-        return this->Insert(key, key);
-    }
-
-    V* Insert(K key, V value) {
-        Node<K, V>* newNode = new Node<K, V>(key, value);
+    T* Insert(T data) {
+        Node<T>* newNode = new Node<T>(data);
         this->size++;
 
         if (this->head == nullptr) {
             this->head = newNode;
             this->tail = newNode;
 
-            return &newNode->value;
+            return &newNode->data;
         }
 
         this->tail->next = newNode;
         newNode->prev = this->tail;
         this->tail = newNode;
 
-        return &newNode->value;
+        return &newNode->data;
     }
 
-    V* Search(K key) {
-        Node<K, V>* node = this->head;
+    T* Search(T key) {
+        Node<T>* node = this->head;
 
-        while (node != nullptr && node->key != key) {
+        while (node != nullptr && node->data != key) {
             node = node->next;
         }
 
         if (node == nullptr) {
             return nullptr;
         }
-        return &node->value;
+        return &node->data;
     }
 
-    void Delete(K key) {
-        Node<K, V>* current = this->head;
+    void Delete(T key) {
+        Node<T>* current = this->head;
 
         // Current will be node to delete OR nullptr
-        while(current != nullptr && current->key != key) {
+        while(current != nullptr && current->data != key) {
             current = current->next;
         }
 
@@ -96,11 +92,11 @@ public:
         return this->head == nullptr;
     }
 
-    Node<K, V>* GetHead() {
+    Node<T>* GetHead() {
         return this->head;
     }
     
-    Node<K, V>* GetTail() {
+    Node<T>* GetTail() {
         return this->tail;
     }
 

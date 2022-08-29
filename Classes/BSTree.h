@@ -3,115 +3,93 @@
 
 #include "Node.h"
 
-template <class K, class V = K>
+template <class T>
 class BSTree {
 protected:
-    Node<K, V>* root;
+    Node<T>* root;
 
-    /*
-        Parameters:
-        currentNode - pointer to current iterrating node
-        newNde - pointer to new node to insert
-    */
-    Node<K, V>* Insert(Node<K, V>* currentNode, Node<K, V>* newNode) {
-        if (this->root == nullptr) {
-            this->root = newNode;
-
-            return this->root;
+    Node<T>* Insert(Node<T>* currentNode, Node<T>* newNode) {
+        if (currentNode == nullptr) {
+            return newNode;
         }
 
-        if (newNode->key < currentNode->key) {
-            if (currentNode->left == nullptr) {
-                currentNode->left = newNode;
-            }
-            else {
-                currentNode->left = this->Insert(currentNode->left, newNode);
-            }
+        if (newNode->data < currentNode->data) {
+            currentNode->left = this->Insert(currentNode->left, newNode);
         }
-        else if (newNode->key > currentNode->key) {
-            if (currentNode->right == nullptr) {
-                currentNode->right = newNode;
-            }
-            else {
-                currentNode->right = this->Insert(currentNode->right, newNode);
-            }
-        }
-        else {
-            newNode = currentNode;
-            return currentNode;
+        else if (newNode->data > currentNode->data) {
+            currentNode->right = this->Insert(currentNode->right, newNode);
         }
 
         currentNode->height = this->CalculateHeight(currentNode);
-
+        
         return currentNode;
     }
 
-    V* Search(Node<K, V>* node, K key) {
-        if (node == nullptr) {
+    T* Search(Node<T>* currentNode, T key) {
+        if (currentNode == nullptr) {
             return nullptr;
         }
+        
+        if (key == currentNode->data) {
+            return &currentNode->data;
+        }
 
-        if (node->key == key) {
-            return &node->value;
+        if (key < currentNode->data) {
+            return this->Search(currentNode->left, key);
         }
-        else if (key < node->key) {
-            return this->Search(node->left, key);
-        }
-        else if (key > node->key) {
-            return this->Search(node->right, key);
+        else if (key > currentNode->data) {
+            return this->Search(currentNode->right, key);
         }
     }
 
-    Node<K, V>* Delete(Node<K, V>* node, K key) {
-        if (node == nullptr) {
+    Node<T>* Delete(Node<T>* currentNode, T key) {
+        if (currentNode == nullptr) {
             return nullptr;
         }
-        if (node->key == key) {
-            if (node->left != nullptr && node->right != nullptr) {
-                Node<K, V>* successor = node->right;
 
-                while (successor->left != nullptr) {
-                    successor = successor->left;
-                }
-
-                node->key = successor->key;
-                node->value = successor->value;
-
-                node->right = this->Delete(node->right, successor->key);
-
-                return node;
+        if (currentNode->data != key) {
+            if (key < currentNode->data) {
+                currentNode->left = this->Delete(currentNode->left, key);
             }
-            else if (node->left != nullptr) {
-                Node<K, V>* temp = node->left;
-
-                delete node;
-                return temp;
+            else if (key > currentNode->data) {
+                currentNode->right = this->Delete(currentNode->right, key);
             }
-            else if (node->right != nullptr) {
-                Node<K, V>* temp = node->right;
 
-                delete node;
-                return temp;
-            }
-            else {
-                delete node;
-
-                return nullptr;
-            }
-        }
-        else if (key < node->key) {
-            node->left = this->Delete(node->left, key);
-        }
-        else if (key > node->key) {
-            node->right = this->Delete(node->right, key);
+            return currentNode;
         }
 
-        node->height = this->CalculateHeight(node);
+        if (currentNode->left != nullptr && currentNode->right != nullptr) {
+            Node<T>* successor = currentNode->right;
 
-        return node;
+            while (successor->left != nullptr) {
+                successor = successor->left;
+            }
+
+            currentNode->data = successor->data;
+
+            currentNode->right = this->Delete(currentNode->right, successor->data);
+
+            return currentNode;
+        }
+        else if (currentNode->left != nullptr) {
+            Node<T>* temp = currentNode->left;
+
+            delete currentNode;
+            return temp;
+        }
+        else if (currentNode->right != nullptr) {
+            Node<T>* temp = currentNode->right;
+
+            delete currentNode;
+            return temp;
+        }
+        else {
+            delete currentNode;
+            return nullptr;
+        }
     }
 
-    int CalculateHeight(Node<K, V>* node) {
+    int CalculateHeight(Node<T>* node) {
         int leftHeight = 0;
         int rightHeight = 0;
 
@@ -131,27 +109,27 @@ public:
     BSTree() {
         this->root = nullptr;
     };
-    
-    V* Insert(K key, V value=V()) {
-        Node<K, V>* newNode = new Node<K, V>(key, value);
-        // V* ptr = nullptr;
+
+    T* Insert(T data) {
+        Node<T>* newNode = new Node<T>(data);
 
         this->root = this->Insert(this->root, newNode);
 
-        return &newNode->value;
+        return &newNode->data;
     }
 
-    V* Search(K key) {
+    T* Search(T key) {
         return this->Search(this->root, key);
     }
 
-    void Delete(K key) {
+    void Delete(T key) {
         this->root = this->Delete(this->root, key);
     }
 
-    Node<K, V>* GetRoot() {
+    Node<T>* GetRoot() {
         return this->root;
     }
+    
 };
 
 #endif
