@@ -1,38 +1,38 @@
 #ifndef NODE_H
 #define NODE_H
 
-template <class K, class V = K>
+template <class T>
 struct Node {
-private: 
-    Node() {
+    T data;
+    int height;
+    
+    Node<T>* next;
+    Node<T>* prev;
+
+    Node<T>* left;
+    Node<T>* right;
+
+    Node(T data) {
+        this->data = data;
+
         this->height = 1;
 
         this->next = nullptr;
         this->prev = nullptr;
-        
         this->left = nullptr;
         this->right = nullptr;
-    }
-public:
-    Node(K key) : Node() {
-        this->key = key;
+
     }
 
-    Node(K key, V value) : Node() {
-        this->key = key;
-        this->value = value;
+    friend bool operator<(const Node<T>& n1, const Node<T>& n2) {
+        return n1.data < n2.data;
     }
-
-    K key;
-    V value;
-
-    int height;
-
-    Node<K, V>* next;
-    Node<K, V>* prev;
-
-    Node<K, V>* left;
-    Node<K, V>* right;
-};
+    friend bool operator>(const Node<T>& n1, const Node<T>& n2) {
+        return n1.data > n2.data;
+    }
+    friend bool operator==(const Node<T>& n1, const Node<T>& n2) {
+        return n1.data == n2.data;
+    }
+ };
 
 #endif

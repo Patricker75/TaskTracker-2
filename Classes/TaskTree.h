@@ -1,68 +1,54 @@
 #ifndef TASKTREE_H
 #define TASKTREE_H
 
+#include "TasksList.h"
 #include "AVLTree.h"
-#include "LinkedList.h"
-#include "Task.h"
 
-class TaskTree : protected AVLTree<int, LinkedList<Task>*> {
-private:
-    
+/*
+    AVLTree Type Structure of TaskList objects
+    The dueDate is the key/comparison for balancing the tree
+*/
+class TaskTree : protected AVLTree<TasksList>{
 public:
-    TaskTree() {}
-    
+    TaskTree() : AVLTree() {}
+
     Task* Insert(Task task) {
         return this->Insert(task.GetDueDate(), task);
     }
 
     Task* Insert(int dueDate, Task task) {
-        LinkedList<Task>* taskList = this->Search(dueDate);
-        if (taskList == nullptr) {
-            taskList = new LinkedList<Task>();
-            taskList = *AVLTree::Insert(dueDate, taskList);
-        }
-
-        return taskList->Insert(task);
-    }
-
-    LinkedList<Task>* Search(int dueDate) {
-        LinkedList<Task>** ptr = AVLTree::Search(dueDate);
+        TasksList* ptr = this->Search(task.GetDueDate());
         if (ptr == nullptr) {
-            return nullptr;
+            ptr = AVLTree::Insert(TasksList(dueDate));
         }
-        return *ptr;
+        return ptr->value.Insert(task);
     }
 
-    Task* SearchTask(Task* taskPtr) {
-        LinkedList<Task>* list = this->Search(taskPtr->GetDueDate());
-
-        if (list == nullptr) {
-            return nullptr;
-        }
-
-        return list->Search(*taskPtr);
+    TasksList* Search(int dueDate) {
+        return AVLTree::Search(TasksList(dueDate));
     }
 
-    void Remove(Task* taskPtr) {
-        LinkedList<Task>* list = this->Search(taskPtr->GetDueDate());
+    Task RemoveTask(Task* ptr) {
+        if (ptr == nullptr) {
+            return Task();
+        }
+        
+        TasksList* listPtr = AVLTree::Search(TasksList(ptr->GetDueDate()));
 
-        if (list == nullptr) {
-            return;
+        if (listPtr == nullptr) {
+            return Task();
         }
 
-        list->Delete(*taskPtr);
+        Task temp = *listPtr->value.Search(*ptr);
+        listPtr->value.Delete(*ptr);
 
-        if (!list->Empty()) {
-            return;
+        if (listPtr->Empty()) {
+            AVLTree::Delete(*listPtr);
         }
 
-        this->Delete(taskPtr->GetDueDate());
+        return temp;
     }
-
-    Node<int, LinkedList<Task>*>* GetRoot() {
-        return this->root;
-    }
-
+    
 };
 
 #endif

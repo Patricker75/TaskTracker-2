@@ -7,6 +7,10 @@
 
 using namespace std;
 
+/*
+    Basic Task Structure
+    Contains data for a single task only
+*/
 class Task {
 private:
     string name;
