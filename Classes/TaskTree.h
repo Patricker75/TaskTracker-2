@@ -8,7 +8,7 @@
     AVLTree Type Structure of TaskList objects
     The dueDate is the key/comparison for balancing the tree
 */
-class TaskTree : protected AVLTree<TasksList>{
+class TaskTree : public AVLTree<TasksList>{
 public:
     TaskTree() : AVLTree() {}
 

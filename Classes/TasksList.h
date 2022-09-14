@@ -30,8 +30,22 @@ public:
         return value.Insert(task);
     }
 
+    // Returns reference to this object's LinkedList
     LinkedList<Task>* GetList() {
         return &this->value;
+    }
+
+    Task** ListToArray() {
+        int size = this->value.GetSize();
+        Task** array = new Task*[size]();
+
+        Node<Task>* current = this->value.GetHead();
+        for (int i = 0; i < size; i++ ){
+            array[i] = &current->data;
+            current = current->next;
+        }
+
+        return array;
     }
 
     bool Empty() {

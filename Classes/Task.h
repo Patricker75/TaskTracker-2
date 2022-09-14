@@ -75,6 +75,8 @@ public:
     // Operator Overloads
     friend ostream& operator<<(ostream& os, const Task& t) {
         os << t.name;
+        
+        return os;
     }
 
     friend bool operator==(const Task& t1, const Task& t2) {
