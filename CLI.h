@@ -2,9 +2,22 @@
 #define CLI_H
 
 #include <iostream>
+
 #include "DataManager.h"
 
 DataManager dm;
+
+std::string FormatDueDate(int dueDate) {
+    int day = dueDate % 100;
+    dueDate /= 100;
+
+    int month = dueDate % 100;
+    dueDate /= 100;
+
+    int year = dueDate;
+
+    return std::to_string(month) + "/" + std::to_string(day) + "/" + std::to_string(year);
+}
 
 void PrintLinkedList(Node<Task>* node) {
     while (node != nullptr) {
@@ -21,11 +34,14 @@ void PrintTaskTree(Node<TasksList>* node) {
 
     PrintTaskTree(node->left);
 
+
     // Prints out InOrderPrint
-    std::cout << node->data.key << std::endl;
+    std::cout << FormatDueDate(node->data.key) << std::endl;
+
     LinkedList<Task>* list = node->data.GetList();
     PrintLinkedList(list->GetHead());
     std::cout << std::endl;
+
 
     PrintTaskTree(node->right);
 }
@@ -35,20 +51,26 @@ void PrintTaskArray(Task** array, int size) {
         return;
     }
     for (int i = 0; i < size; i++) {
-        std::cout << i << " - " <<  *array[i] << endl;
+        std::cout << i << " - " <<  *array[i] << std::endl;
     }
 }
 
+void PrintTask(Task* ptr) {
+    std::cout << "Task Name: " << ptr->GetName() << std::endl;
+    std::cout << "Due Date: " << FormatDueDate(ptr->GetDueDate()) << std::endl;
+    std::cout << "Notes: " << ptr->GetNotes() << std::endl;
+}
+
 // Takes in int&, Returns Array of Tasks
-Task** SearchTask(int& size) {
+Task** SearchTasksList(int& size) {
     std::cout << "Date of Task (mm/dd/yyyy)" << std::endl;
     int month, day, year;
     std::cout << "Month: ";
-    cin >> month;
+    std::cin >> month;
     std::cout << "Day: ";
-    cin >> day;
+    std::cin >> day;
     std::cout << "Year: ";
-    cin >> year;
+    std::cin >> year;
     std::cout << std::endl;
 
     int searchDate = year * 10000 + month * 100 + day;
@@ -63,15 +85,32 @@ Task** SearchTask(int& size) {
     Task** taskArray = tasks->ListToArray();
     size = tasks->GetList()->GetSize();
 
-    cin.clear();
+    std::cin.clear();
 
     return taskArray;
 }
 
+Task* SearchForTask() {
+    int size;
+    Task** array = SearchTasksList(size);
+    if (array == nullptr) {
+        return nullptr;
+    }
+
+    int index;
+
+    PrintTaskArray(array, size);
+    std::cout << "Which index to Print: ";
+    std::cin >> index;
+
+    std::cout << std::endl;
+
+    return array[index];
+}
+
+// Function allows user to edit various properties of the task
 void EditTask(Task* ptr) {
-    std::cout << "Editing: " << ptr->GetName() << std::endl;
-    std::cout << "Due Date: " << ptr->GetDueDate() << std::endl;
-    std::cout << "Notes: " << ptr->GetNotes() << std::endl;
+    PrintTask(ptr);
 
     int choice = 0;
     while (choice >= 0) {    
@@ -80,17 +119,17 @@ void EditTask(Task* ptr) {
         std::cout << "2 - Notes" << std::endl;
         std::cout << "-1 - Exit" << std::endl;
 
-        cin >> choice;
+        std::cin >> choice;
 
-        string line;
+        std::string line;
         
         // Clearing whitespace
-        std::getline(cin, line);
+        std::getline(std::cin, line);
         
         // Change Name
         if (choice == 0) {
             std::cout << "New Name: ";
-            std::getline(cin, line);
+            std::getline(std::cin, line);
             ptr->SetName(line);
 
             std::cout << std::endl;
@@ -102,15 +141,15 @@ void EditTask(Task* ptr) {
             std::cout << "New Due Date: " << std::endl;
 
             std::cout << "Month: ";
-            cin >> in;
+            std::cin >> in;
             dueDate = in * 100;
 
             std::cout << "Day: ";
-            cin >> in;
+            std::cin >> in;
             dueDate += in;
 
             std::cout << "Year: ";
-            cin >> in;
+            std::cin >> in;
             dueDate += in * 10000;
 
             ptr->SetDueDate(dueDate);
@@ -132,75 +171,64 @@ void PrintMenu() {
     std::cout << "2 - Remove Task" << std::endl;
     std::cout << "3 - Edit Task" << std::endl;
     std::cout << "4 - Print Task" << std::endl;
+    std::cout << "5 - Remove Entire Date" << std::endl;
     std::cout << "-1 - Exit" << std::endl;
 }
 
+// Function takes user input and creates a new task
 void AddTask() {
-    string name = "";
+    std::string name = "";
     int dueDate = -1;
-    string notes = "";
+    std::string notes = "";
 
     std::cout << "Name of Task: ";
-    getline(cin, name);
+    std::getline(std::cin, name);
 
 
-    string temp;
+    std::string temp;
     int month, day, year;
     std::cout << "Due Date of Task (mm/dd/yyyy)" << std::endl;
     std::cout << "Month: ";
-    cin >> month;
+    std::cin >> month;
     std::cout << "Day: ";
-    cin >> day;
+    std::cin >> day;
     std::cout << "Year: ";
-    cin >> year;
+    std::cin >> year;
     std::cout << std::endl;
 
     dueDate = year * 10000 + month * 100 + day;
     // TODO Date Verification
 
-    getline(cin, temp); // Clearing Whitespace
+    std::getline(std::cin, temp); // Clearing Whitespace
 
 
     std::cout << "Notes: " << std::endl;
-    getline(cin, notes);
+    std::getline(std::cin, notes);
 
 
     Task newTask(name, dueDate, notes);
     dm.AddTask(newTask);
 }
 
+// Function searches for a task then removes it from the tree
 void RemoveTask() {
-    int size;
-    Task** array = SearchTask(size);
-    if (array == nullptr) {
+    Task* toRemove = SearchForTask();
+    
+    if (toRemove == nullptr) {
         return;
     }
 
-    int index;
-
-    PrintTaskArray(array, size);
-    std::cout << "Which index to Remove: ";
-    cin >> index;
-    
-    Task* toRemove = array[index];
-    
     dm.RemoveTask(toRemove);
 }
 
+// Function searches for a task then calls EditTask()
 void UpdateTask() {
-    int size;
-    Task** array = SearchTask(size);
-    if (array == nullptr) {
+    Task* editting = SearchForTask();
+    
+    if (editting == nullptr) {
         return;
     }
-
-    int index;
-
-    PrintTaskArray(array, size);
-    std::cout << "Which index to Update: ";
-    cin >> index;
-
-    Task* editting = array[index];
+    
     int oldDueDate = editting->GetDueDate();
     EditTask(editting);
     if (oldDueDate == editting->GetDueDate()) {
@@ -213,38 +241,44 @@ void UpdateTask() {
     list->GetList()->Delete(*editting);
 }
 
-void PrintTask() {
-    int size;
-    Task** array = SearchTask(size);
-    if (array == nullptr) {
-        return;
-    }
+void RemoveWholeDate() {
+    std::cout << "Date of Task (mm/dd/yyyy)" << std::endl;
+    int month, day, year;
+    std::cout << "Month: ";
+    std::cin >> month;
+    std::cout << "Day: ";
+    std::cin >> day;
+    std::cout << "Year: ";
+    std::cin >> year;
+    std::cout << std::endl;
 
-    int index;
+    int deleteDate = year * 10000 + month * 100 + day;
 
-    PrintTaskArray(array, size);
-    std::cout << "Which index to Print: ";
-    cin >> index;
-
-    Task* toPrint = array[index];
-
-    std::cout << "Task Name: " << toPrint->GetName() << std::endl;
-    std::cout << "Due Date: " << toPrint->GetDueDate() << std::endl;
-    std::cout << "Notes: " << toPrint->GetNotes() << std::endl; 
+    dm.DeleteTasksList(deleteDate);
 }
 
-void Run(DataManager& loadDM) {
+void Run(DataManager& loadDM, std::string fileName) {
     dm = loadDM;
 
+    dm.Load(fileName);
+
     int choice = 0;
-    string cleaner;
+    std::string cleaner;
     while (choice >= 0) {
         PrintMenu();
-        cin >> choice;
-        getline(cin, cleaner); // Whitespace clear
+        std::cin >> choice;
+        std::getline(std::cin, cleaner); // Whitespace clear
+        
+        std::cout << std::endl;
 
         if (choice == 0) {
-            PrintTaskTree(dm.GetRoot());
+            Node<TasksList>* node = dm.GetRoot();
+            if (node != nullptr) {
+                PrintTaskTree(node);
+            }
+            else {
+                std::cout << "No Tasks Have Been Added" << std::endl;
+            }
         }
         else if (choice == 1) {
             AddTask();
@@ -256,12 +290,25 @@ void Run(DataManager& loadDM) {
             UpdateTask();
         }
         else if (choice == 4) {
-            PrintTask();
+            Task* target = SearchForTask();
+            PrintTask(target);
+        }
+        else if (choice == 5) {
+            RemoveWholeDate();
         }
         else {
             choice = -1;
         }
+
+        std::cout << std::endl;
+        for (int i = 0; i < 40; i++) {
+            std::cout << "-";
+        }
+        std::cout << std::endl;
+        std::cout << std::endl;
     }
+
+    dm.Save(fileName);
 }
 
 #endif

@@ -5,19 +5,17 @@
 
 #include "LinkedList.h"
 
-using namespace std;
-
 /*
     Basic Task Structure
     Contains data for a single task only
 */
 class Task {
 private:
-    string name;
-    string notes;
+    std::string name;
+    std::string notes;
     int dueDate; 
 
-    LinkedList<string> tags;       
+    LinkedList<std::string> tags;       
 public:
     // Constructors
     Task() {
@@ -25,10 +23,10 @@ public:
         this->notes = "";
         this->dueDate = 0;
 
-        this->tags = LinkedList<string>();
+        this->tags = LinkedList<std::string>();
     }
 
-    Task(string name, int dueDate, string notes = "") : Task() {
+    Task(std::string name, int dueDate, std::string notes = "") : Task() {
         this->name = name;
         this->dueDate = dueDate;
 
@@ -36,44 +34,41 @@ public:
     }
 
     // Getters/Setters
-    void SetName(string newName) {
+    void SetName(std::string newName) {
         this->name = newName;
     }
-    string GetName() {
+    std::string GetName() {
         return this->name;
     }
 
-    void SetNotes(string newNotes) {
+    void SetNotes(std::string newNotes) {
         this->notes = newNotes;
     }
-    string GetNotes() {
+    std::string GetNotes() {
         return this->notes;
     }
 
     void SetDueDate(int newDueDate) {
-        // TODO verify dueDate
-        if (true) {
-            this->dueDate = newDueDate;
-        }
+        this->dueDate = newDueDate;
     }
     int GetDueDate() {
         return this->dueDate;
     }
 
-    LinkedList<string>* GetTags() {
+    LinkedList<std::string>* GetTags() {
         return &this->tags;
     }
 
     // Modifiers
-    void AddTag(string newTag) {
+    void AddTag(std::string newTag) {
         this->tags.Insert(newTag);
     }
-    void RemoveTag(string tag) {
+    void RemoveTag(std::string tag) {
         this->tags.Delete(tag);
     }
 
     // Operator Overloads
-    friend ostream& operator<<(ostream& os, const Task& t) {
+    friend std::ostream& operator<<(std::ostream& os, const Task& t) {
         os << t.name;
         
         return os;

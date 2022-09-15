@@ -35,7 +35,7 @@ public:
 
         Node<T>* node = this->front;
         this->front = node->next;
-        return node->key;
+        return node->data;
     }
     
     bool IsEmpty() {

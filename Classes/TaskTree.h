@@ -8,7 +8,7 @@
     AVLTree Type Structure of TaskList objects
     The dueDate is the key/comparison for balancing the tree
 */
-class TaskTree : public AVLTree<TasksList>{
+class TaskTree : public AVLTree<TasksList> {
 public:
     TaskTree() : AVLTree() {}
 
@@ -49,6 +49,9 @@ public:
         return temp;
     }
     
+    void RemoveNode(int dueDate) {
+        AVLTree::Delete(TasksList(dueDate));
+    }
 };
 
 #endif

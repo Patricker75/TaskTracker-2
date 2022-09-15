@@ -1,6 +1,9 @@
 #ifndef DATAMANAGER_H
 #define DATAMANAGER_H
 
+#include <ctime>
+
+#include "IOController.h"
 #include "Classes/TaskTree.h"
 
 /*
@@ -9,11 +12,22 @@
 class DataManager {
 private:
     TaskTree taskTree;
+    int currentDate;
 public:
-    DataManager() {}
+    DataManager() {
+        time_t temp = std::time(0);
+        tm* now = std::gmtime(&temp); 
+
+        this->currentDate = (now->tm_year + 1900) * 10000 + now->tm_mon * 100 + now->tm_mday;
+    }
 
     // Adds a Task object to the tree
     void AddTask(Task newTask) {
+        // Checking if task has valid dueDate (i.e. not in the past)
+        if (newTask.GetDueDate() < currentDate) {
+            return;
+        }
+
         // Checking for duplicate tasks
         TasksList* tasksList = taskTree.Search(newTask.GetDueDate());
         
@@ -49,13 +63,23 @@ public:
             return Task();
         }
 
-        Task deletedTask = *searchPtr;
-        list->Delete(deletedTask);
-        return deletedTask;
+        return taskTree.RemoveTask(searchPtr);
+    }
+
+    void DeleteTasksList(int dueDate) {
+        this->taskTree.RemoveNode(dueDate);
     }
 
     Node<TasksList>* GetRoot() {
         return taskTree.GetRoot();
+    }
+
+    void Save(std::string fileName) {
+        SaveData(fileName, this->taskTree);
+    }
+
+    void Load(std::string fileName) {
+        this->taskTree = LoadData(fileName);
     }
 };
 
