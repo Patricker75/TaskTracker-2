@@ -106,7 +106,9 @@ void SaveData(std::string fileName, TaskTree& tree) {
 
     Node<TasksList>* listNode = tree.GetRoot();
 
-    nodeQueue.Enqueue(listNode);
+    if (listNode != nullptr) {
+        nodeQueue.Enqueue(listNode);
+    }
     
     // Loop to print every TreeNode
     while (!nodeQueue.IsEmpty()) {
