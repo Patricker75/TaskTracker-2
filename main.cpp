@@ -7,7 +7,7 @@
 int main(int argc, char* argv []) {
     DataManager dm;
 
-    Run(dm, "data.json");
+    Run(dm, "test.json");
 
     return 0;
 }
