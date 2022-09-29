@@ -26,6 +26,10 @@ public:
         this->value.Insert(ptr);
     }
 
+    LinkedList<Task*>* GetList() {
+        return &this->value;
+    }
+
     bool Empty() {
         return this->value.Empty();
     }

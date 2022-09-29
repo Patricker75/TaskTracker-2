@@ -5,6 +5,7 @@
 
 #include "IOController.h"
 #include "Classes/TaskTree.h"
+#include "Classes/TagsHashTable.h"
 
 /*
     This class controls adding, removing, editing of all tasks stored
@@ -12,6 +13,8 @@
 class DataManager {
 private:
     TaskTree taskTree;
+    TagsHashTable tagHashTable;
+
     int currentDate;
 public:
     DataManager() {
@@ -39,13 +42,25 @@ public:
         }
 
         // Add New Unique Task
-        Task* taskPtr = taskTree.Insert(newTask.GetDueDate(), newTask);        
+        Task* taskPtr = taskTree.Insert(newTask.GetDueDate(), newTask);
+
+        // Adding Task to HashTable
+        Node<std::string>* tagNode = taskPtr->GetTags()->GetHead();
+        while (tagNode != nullptr) {
+            tagHashTable.Insert(tagNode->data, taskPtr);
+
+            tagNode = tagNode->next;
+        }
     }
 
     // Searches Tree for any Node matching the dueDate
     // Else returns nullptr
     TasksList* SearchTree(int dueDate) {
         return taskTree.Search(dueDate);
+    }
+
+    Chain* SearchHashTable(std::string tag) {
+        return this->tagHashTable.Search(tag);
     }
 
     // Returns a Task object, and removes it from the tree entirely
@@ -63,11 +78,42 @@ public:
             return Task();
         }
 
+        Node<std::string>* tagNode = searchPtr->GetTags()->GetHead();
+        while (tagNode != nullptr) {
+            tagHashTable.RemoveTask(tagNode->data, searchPtr);
+
+            tagNode = tagNode->next;
+        }
+
         return taskTree.RemoveTask(searchPtr);
     }
 
+    void RemoveTagFromTask(std::string tag, Task* ptr) {
+        this->tagHashTable.RemoveTask(tag, ptr);
+    }
+
     void DeleteTasksList(int dueDate) {
+        // Search the tree for the TasksList
+        TasksList* tasksList = this->SearchTree(dueDate);
+
+        // Iterate through each node in the list and remove any Task*'s in the hashTable
+        Node<Task>* taskNode = tasksList->GetList()->GetHead();
+        while (taskNode != nullptr) {
+            Node<std::string>* tagNode = taskNode->data.GetTags()->GetHead();
+
+            while (tagNode != nullptr) {
+                tagHashTable.RemoveTask(tagNode->data, &taskNode->data);
+
+                tagNode = tagNode->next;
+            }
+            taskNode = taskNode->next;
+        }
+
         this->taskTree.RemoveNode(dueDate);
+    }
+
+    TagsHashTable* GetHashTable() {
+        return &this->tagHashTable;
     }
 
     Node<TasksList>* GetRoot() {
@@ -79,7 +125,7 @@ public:
     }
 
     void Load(std::string fileName) {
-        this->taskTree = LoadData(fileName);
+        LoadData(fileName, this->taskTree, this->tagHashTable);
     }
 };
 

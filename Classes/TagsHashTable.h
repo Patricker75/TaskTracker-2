@@ -11,7 +11,7 @@ private:
     int Hash(std::string tag) {
         int index = 0;
         for (int i = 0; i < 3; i++) {
-            if (i > tag.length()) {
+            if (i > tag.length() - 1) {
                 break;
             }
 
@@ -51,6 +51,24 @@ public:
         Chain* chainPtr = this->Search(tag);
 
         chainPtr->RemoveTask(taskPtr);
+
+        if (chainPtr->Empty()) {
+            RemoveChain(tag);
+        }
+    }
+
+    void RemoveChain(std::string tag) {
+        int hashIndex = this->Hash(tag);
+
+        this->table[hashIndex].Delete(Chain(tag));
+    }
+
+    LinkedList<Chain>* GetListAt(int index) {
+        return &this->table[index];
+    }
+
+    int GetSize() {
+        return this->size;
     }
 };
 

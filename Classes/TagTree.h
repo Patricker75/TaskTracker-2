@@ -38,6 +38,10 @@ public:
             AVLTree::Delete(*listPtr);
         }
     }
+
+    bool Empty() {
+        return this->root == nullptr;
+    }
 };
 
 #endif

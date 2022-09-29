@@ -27,6 +27,10 @@ public:
     void RemoveTask(Task* ptr) {
         this->value.RemoveTask(ptr);
     }
+
+    bool Empty() {
+        return this->value.Empty();
+    }
 };
 
 #endif

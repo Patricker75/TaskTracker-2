@@ -6,6 +6,7 @@
 #include <iostream>
 
 #include "Classes/TaskTree.h"
+#include "Classes/TagsHashTable.h"
 #include "Classes/Queue.h"
 
 // Save/Load Data in .json format
@@ -63,7 +64,7 @@ Task ParseTask(std::ifstream& file, int dueDate) {
     return newTask;
 }
 
-void ParseTreeNode(std::ifstream& file, TaskTree& tree) {
+void ParseTreeNode(std::ifstream& file, TaskTree& tree, TagsHashTable& hashTable) {
     std::string line;
 
     // Parsing TasksList
@@ -77,7 +78,14 @@ void ParseTreeNode(std::ifstream& file, TaskTree& tree) {
 
     while (line.find("]") == line.npos) {
         Task t = ParseTask(file, dueDate);
-        tree.Insert(t);
+        Task* taskPtr = tree.Insert(t);
+
+        Node<std::string>* tagNode = taskPtr->GetTags()->GetHead();
+        while (tagNode != nullptr) {
+            hashTable.Insert(tagNode->data, taskPtr);
+
+            tagNode = tagNode->next;
+        }
 
         std::getline(file, line);
     }
@@ -86,12 +94,13 @@ void ParseTreeNode(std::ifstream& file, TaskTree& tree) {
     std::getline(file, line);
 }
 
-TaskTree LoadData(std::string fileName) {
+void LoadData(std::string fileName, TaskTree& tree, TagsHashTable& hashTable) {
     std::ifstream file(fileName);
     std::string line;
 
     if (!file.good()) {
-        return TaskTree();
+        tree = TaskTree();
+        return;
     }
 
     // Ignoring the first two lines
@@ -101,14 +110,11 @@ TaskTree LoadData(std::string fileName) {
     // Ignoring { & Priming ParseTreeNode
     std::getline(file, line);
 
-    TaskTree tree;
     while(line.find("]") == line.npos) {
-        ParseTreeNode(file, tree);
+        ParseTreeNode(file, tree, hashTable);
 
         std::getline(file, line);
     }
-
-    return tree;
 }
 
 void SaveData(std::string fileName, TaskTree& tree) {
