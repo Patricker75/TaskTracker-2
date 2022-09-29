@@ -6,6 +6,7 @@
 #include <iostream>
 
 #include "Classes/TaskTree.h"
+#include "Classes/TagsHashTable.h"
 #include "Classes/Queue.h"
 
 // Save/Load Data in .json format
@@ -18,6 +19,21 @@ std::string Indenter(int tabCount) {
     }
 
     return tabs.str();
+}
+
+void ParseTags(std::ifstream& file, Task* taskPtr) {
+    std::string line;
+
+    std::getline(file, line);
+
+    while (line.find("]") == line.npos) {
+        line = line.substr(line.find("\"")+1);
+        line = line.substr(0, line.find("\""));
+        
+        taskPtr->AddTag(line);
+        
+        std::getline(file, line);
+    }
 }
 
 Task ParseTask(std::ifstream& file, int dueDate) {
@@ -36,15 +52,19 @@ Task ParseTask(std::ifstream& file, int dueDate) {
 
     Task newTask(name, dueDate, notes);
 
-    // TODO Implement Tag Parsing
+    std::getline(file, line);    
+    if (line.find("tags") != line.npos) {
+        ParseTags(file, &newTask);
+    
+        // Ignoring }
+        std::getline(file, line);
+    }
 
-    // Ignoring }
-    std::getline(file, line);
 
     return newTask;
 }
 
-void ParseTreeNode(std::ifstream& file, TaskTree& tree) {
+void ParseTreeNode(std::ifstream& file, TaskTree& tree, TagsHashTable& hashTable) {
     std::string line;
 
     // Parsing TasksList
@@ -58,7 +78,14 @@ void ParseTreeNode(std::ifstream& file, TaskTree& tree) {
 
     while (line.find("]") == line.npos) {
         Task t = ParseTask(file, dueDate);
-        tree.Insert(t);
+        Task* taskPtr = tree.Insert(t);
+
+        Node<std::string>* tagNode = taskPtr->GetTags()->GetHead();
+        while (tagNode != nullptr) {
+            hashTable.Insert(tagNode->data, taskPtr);
+
+            tagNode = tagNode->next;
+        }
 
         std::getline(file, line);
     }
@@ -67,12 +94,13 @@ void ParseTreeNode(std::ifstream& file, TaskTree& tree) {
     std::getline(file, line);
 }
 
-TaskTree LoadData(std::string fileName) {
+void LoadData(std::string fileName, TaskTree& tree, TagsHashTable& hashTable) {
     std::ifstream file(fileName);
     std::string line;
 
     if (!file.good()) {
-        return TaskTree();
+        tree = TaskTree();
+        return;
     }
 
     // Ignoring the first two lines
@@ -82,14 +110,11 @@ TaskTree LoadData(std::string fileName) {
     // Ignoring { & Priming ParseTreeNode
     std::getline(file, line);
 
-    TaskTree tree;
     while(line.find("]") == line.npos) {
-        ParseTreeNode(file, tree);
+        ParseTreeNode(file, tree, hashTable);
 
         std::getline(file, line);
     }
-
-    return tree;
 }
 
 void SaveData(std::string fileName, TaskTree& tree) {
@@ -142,10 +167,26 @@ void SaveData(std::string fileName, TaskTree& tree) {
 
             // Printing task's details (name, notes, tags)
             file << Indenter(indentCount) << "\"name\": " << "\"" << task.GetName() << "\"," << std::endl;
-            file << Indenter(indentCount) << "\"notes\": " << "\"" << task.GetNotes() << "\"" << std::endl;
+            file << Indenter(indentCount) << "\"notes\": " << "\"" << task.GetNotes() << "\"," << std::endl;
             
-            // TODO Implement Saving Tags
-            
+
+            file << Indenter(indentCount) << "\"tags\": [" << std::endl;
+            // Loop to print every tag in a Task
+            Node<std::string>* tagNode = task.GetTags()->GetHead();
+            indentCount++;
+            while (tagNode != nullptr) {
+                file << Indenter(indentCount) << "\"" << tagNode->data << "\"";
+
+                if (tagNode->next != nullptr) {
+                    file << ",";
+                }
+                file << std::endl;
+
+                tagNode = tagNode->next;
+            }
+            indentCount--;
+            file << Indenter(indentCount) << "]" << std::endl;
+
 
             indentCount--;
             file << Indenter(indentCount) << "}";

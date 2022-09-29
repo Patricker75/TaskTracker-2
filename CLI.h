@@ -19,9 +19,19 @@ std::string FormatDueDate(int dueDate) {
     return std::to_string(month) + "/" + std::to_string(day) + "/" + std::to_string(year);
 }
 
-void PrintLinkedList(Node<Task>* node) {
+template <class T>
+void PrintLinkedList(Node<T>* node) {
     while (node != nullptr) {
         std::cout << "\t" << node->data << std::endl;
+
+        node = node->next;
+    }
+}
+
+template <class T>
+void PrintLinkedList(Node<T*>* node) {
+    while (node != nullptr) {
+        std::cout << "\t" << *node->data << std::endl;
 
         node = node->next;
     }
@@ -46,6 +56,25 @@ void PrintTaskTree(Node<TasksList>* node) {
     PrintTaskTree(node->right);
 }
 
+void PrintTagTree(Node<TagsList>* node) {
+    if (node == nullptr) {
+        return;
+    }
+
+    PrintTagTree(node->left);
+
+
+    // Prints out InOrderPrint
+    std::cout << FormatDueDate(node->data.key) << std::endl;
+
+    LinkedList<Task*>* list = node->data.GetList();
+    PrintLinkedList(list->GetHead());
+    std::cout << std::endl;
+
+
+    PrintTagTree(node->right);
+}
+
 void PrintTaskArray(Task** array, int size) {
     if (array == nullptr) {
         return;
@@ -59,6 +88,8 @@ void PrintTask(Task* ptr) {
     std::cout << "Task Name: " << ptr->GetName() << std::endl;
     std::cout << "Due Date: " << FormatDueDate(ptr->GetDueDate()) << std::endl;
     std::cout << "Notes: " << ptr->GetNotes() << std::endl;
+    std::cout << "Tags: " << std::endl;
+    PrintLinkedList(ptr->GetTags()->GetHead());
 }
 
 // Takes in int&, Returns Array of Tasks
@@ -116,7 +147,9 @@ void EditTask(Task* ptr) {
     while (choice >= 0) {    
         std::cout << "0 - Name" << std::endl;
         std::cout << "1 - Due Date" << std::endl;
-        std::cout << "2 - Notes" << std::endl;
+        // std::cout << "2 - Notes" << std::endl;
+        std::cout << "3 - Add Tags" << std::endl;
+        std::cout << "4 - Remove Tags" << std::endl;
         std::cout << "-1 - Exit" << std::endl;
 
         std::cin >> choice;
@@ -158,6 +191,37 @@ void EditTask(Task* ptr) {
         else if (choice == 2) {
 
         }
+        // Add Tag(s)
+        else if (choice == 3) {
+            std::cout << "New Tags: (leave blank to stop)" << std::endl;
+            
+            std::getline(std::cin, line);
+            while (line != "") {
+                ptr->AddTag(line);
+
+                std::getline(std::cin, line);
+            }
+        }
+        // Remove Tag(s)
+        else if (choice == 4) {
+            if (ptr->GetTags()->GetHead() == nullptr) {
+                std::cout << "Task Has No Tags" << std::endl;
+                continue;
+            }
+
+            std::cout << "Current Tags: " << std::endl;
+            PrintLinkedList(ptr->GetTags()->GetHead());
+
+            std::cout << "Tags to Remove: (leave blank to stop)" << std::endl; 
+            std::getline(std::cin, line);
+            while(line != "") {
+                ptr->RemoveTag(line);
+
+                dm.RemoveTagFromTask(line, ptr);
+
+                std::getline(std::cin, line);
+            }
+        }
         // Exit
         else {
             choice == -1;
@@ -172,6 +236,8 @@ void PrintMenu() {
     std::cout << "3 - Edit Task" << std::endl;
     std::cout << "4 - Print Task" << std::endl;
     std::cout << "5 - Remove Entire Date" << std::endl;
+    std::cout << "6 - Print All Tags" << std::endl;
+    std::cout << "7 - Search Task by Tag" << std::endl;
     std::cout << "-1 - Exit" << std::endl;
 }
 
@@ -184,7 +250,8 @@ void AddTask() {
     std::cout << "Name of Task: ";
     std::getline(std::cin, name);
 
-
+    
+    // Date Parsing
     std::string temp;
     int month, day, year;
     std::cout << "Due Date of Task (mm/dd/yyyy)" << std::endl;
@@ -205,8 +272,17 @@ void AddTask() {
     std::cout << "Notes: " << std::endl;
     std::getline(std::cin, notes);
 
-
     Task newTask(name, dueDate, notes);
+    
+    // Tags Input
+    std::cout << "Tags: (leave blank to stop)" << std::endl;
+    std::getline(std::cin, temp);
+    while (temp != "") {
+        newTask.AddTag(temp);
+
+        std::getline(std::cin, temp);
+    }
+
     dm.AddTask(newTask);
 }
 
@@ -257,6 +333,39 @@ void RemoveWholeDate() {
     dm.DeleteTasksList(deleteDate);
 }
 
+void PrintAllTags() {
+    TagsHashTable* table = dm.GetHashTable();
+    int size = table->GetSize();
+
+    // TODO Implement LinkedList Sorting
+
+    std::cout << "Stored Tags: " << std::endl;
+    for (int i = 0; i < size; i++) {
+        Node<Chain>* chain = table->GetListAt(i)->GetHead();
+
+        while (chain != nullptr) {
+            std::cout << "\t" << chain->data.key << std::endl;
+
+            chain = chain->next;
+        }
+    }
+}
+
+void SearchByTag() {
+    std::cout << "What tag to search:" << std::endl;
+    std::string line;
+    std::getline(std::cin, line);
+    
+    Chain* searchChain = dm.SearchHashTable(line);
+
+    if (searchChain == nullptr) {
+        std::cout << "No tag \'" << line << "\' stored" << std::endl;
+        return;
+    }
+
+    PrintTagTree(searchChain->value.GetRoot());
+}
+
 void Run(DataManager& loadDM, std::string fileName) {
     dm = loadDM;
 
@@ -295,6 +404,12 @@ void Run(DataManager& loadDM, std::string fileName) {
         }
         else if (choice == 5) {
             RemoveWholeDate();
+        }
+        else if (choice == 6) {
+            PrintAllTags();
+        }
+        else if (choice == 7) {
+            SearchByTag();
         }
         else {
             choice = -1;
