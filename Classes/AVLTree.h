@@ -90,7 +90,7 @@ private:
 
         node->height = this->CalculateHeight(node);
 
-        return node;
+        return this->Balance(node);
     }
 
     Node<T>* LeftRotate(Node<T>* node) {
