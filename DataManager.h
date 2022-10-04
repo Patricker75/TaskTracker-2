@@ -16,6 +16,23 @@ private:
     TagsHashTable tagHashTable;
 
     int currentDate;
+
+    void PurgeTree(Node<TasksList>* node) {
+        if (node == nullptr) {
+            return;
+        }
+
+        // If node->data > currentDate, node->data is in the future
+        // If node->data < currentDate, node->data is in the past
+        if (currentDate < node->data) {
+            PurgeTree(node->left);
+        }
+        else if (currentDate > node->data) {
+            PurgeTree(node->left);
+
+            this->DeleteTasksList(node->data.key);
+        }
+    }
 public:
     DataManager() {
         time_t temp = std::time(0);
@@ -110,6 +127,10 @@ public:
         }
 
         this->taskTree.RemoveNode(dueDate);
+    }
+
+    void PurgeTree() {
+        this->PurgeTree(this->GetRoot());
     }
 
     TagsHashTable* GetHashTable() {

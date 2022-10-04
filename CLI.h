@@ -7,6 +7,8 @@
 
 DataManager dm;
 
+enum class InputType {name, notes, dueDate, add_tags, remove_tags};
+
 std::string FormatDueDate(int dueDate) {
     int day = dueDate % 100;
     dueDate /= 100;
@@ -92,23 +94,101 @@ void PrintTask(Task* ptr) {
     PrintLinkedList(ptr->GetTags()->GetHead());
 }
 
+void InputHandler(InputType type, void* ptr) {
+    std::string input = "";
+    switch (type) {
+        case InputType::name: {
+            std::string* namePtr = (std::string*) ptr;
+
+            std::cout << "Name of Task: ";
+            while (input.empty()) {
+                std::getline(std::cin, input);
+            }
+
+            *namePtr = input;
+            break;
+        }
+
+        case InputType::notes: {
+            std::string* notesPtr = (std::string*) ptr;
+            
+            std::cout << "Task's Notes: ";
+            std::getline(std::cin, input);
+
+            *notesPtr = input;
+            break;
+        }
+            
+        case InputType::dueDate: {
+            int* dueDatePtr = (int*) ptr;
+
+            std::cout << "Date of Task:" << std::endl;
+            int month, day, year;
+
+            std::cout << "Month: ";
+            while (input.empty()) {
+                std::getline(std::cin, input);
+            }
+            month = std::stoi(input);
+            input = "";
+
+            std::cout << "Day: ";
+            while (input.empty()) {
+                std::getline(std::cin, input);
+            }
+            day = std::stoi(input);
+            input = "";
+
+            std::cout << "Year: ";
+            while (input.empty()) {
+                std::getline(std::cin, input);
+            }
+            year = std::stoi(input);
+            
+            *dueDatePtr = year * 10000 + month * 100 + day;
+            break;
+        }
+
+        case InputType::add_tags: {
+            Task* taskPtr = (Task*) ptr;
+
+            std::cout << "Adding Tags: (leave blank to stop)" << std::endl;
+            do {
+                std::getline(std::cin, input);
+                
+                if (!input.empty()) {
+                    taskPtr->AddTag(input);
+                }
+            } while (!input.empty());
+            break;
+        }
+
+        case InputType::remove_tags: {
+            Task* taskPtr = (Task*) ptr;
+
+            std::cout << "Tags of Task" << std::endl;
+            PrintLinkedList(taskPtr->GetTags()->GetHead());
+
+            std::cout << "Removing Tags: (leave blank to stop)" << std::endl;
+            do {
+                std::getline(std::cin, input);
+                
+                taskPtr->RemoveTag(input);
+                dm.RemoveTagFromTask(input, taskPtr);
+            } while (!input.empty());
+            break;
+        }
+    }
+}
+
 // Takes in int&, Returns Array of Tasks
 Task** SearchTasksList(int& size) {
-    std::cout << "Date of Task (mm/dd/yyyy)" << std::endl;
-    int month, day, year;
-    std::cout << "Month: ";
-    std::cin >> month;
-    std::cout << "Day: ";
-    std::cin >> day;
-    std::cout << "Year: ";
-    std::cin >> year;
-    std::cout << std::endl;
+    int searchDate;
+    InputHandler(InputType::dueDate, &searchDate);
 
-    int searchDate = year * 10000 + month * 100 + day;
-    
     TasksList* tasks = dm.SearchTree(searchDate);
     if (tasks == nullptr) {
-        printf("No Task with Date: %i/%i/%i\n", month, day, year);
+        std::cout << "No Task with Date: " << FormatDueDate(searchDate);
         size = 0;
         return nullptr;
     }
@@ -147,80 +227,41 @@ void EditTask(Task* ptr) {
     while (choice >= 0) {    
         std::cout << "0 - Name" << std::endl;
         std::cout << "1 - Due Date" << std::endl;
-        // std::cout << "2 - Notes" << std::endl;
+        std::cout << "2 - Notes" << std::endl;
         std::cout << "3 - Add Tags" << std::endl;
         std::cout << "4 - Remove Tags" << std::endl;
         std::cout << "-1 - Exit" << std::endl;
 
-        std::cin >> choice;
-
         std::string line;
-        
-        // Clearing whitespace
-        std::getline(std::cin, line);
-        
+        while (line.empty()) {
+            std::getline(std::cin, line);
+        }
+
+        choice = std::stoi(line);
+
         // Change Name
         if (choice == 0) {
-            std::cout << "New Name: ";
-            std::getline(std::cin, line);
+            InputHandler(InputType::name, &line);
             ptr->SetName(line);
-
-            std::cout << std::endl;
         }
         // Change DueDate
         else if (choice == 1) {
-            int in;
-            int dueDate;
-            std::cout << "New Due Date: " << std::endl;
-
-            std::cout << "Month: ";
-            std::cin >> in;
-            dueDate = in * 100;
-
-            std::cout << "Day: ";
-            std::cin >> in;
-            dueDate += in;
-
-            std::cout << "Year: ";
-            std::cin >> in;
-            dueDate += in * 10000;
-
-            ptr->SetDueDate(dueDate);
+            int newDueDate = -1;
+            InputHandler(InputType::dueDate, &newDueDate);
+            ptr->SetDueDate(newDueDate);
         }
         // Change Notes
         else if (choice == 2) {
-
+            InputHandler(InputType::notes, &line);
+            ptr->SetNotes(line);
         }
         // Add Tag(s)
         else if (choice == 3) {
-            std::cout << "New Tags: (leave blank to stop)" << std::endl;
-            
-            std::getline(std::cin, line);
-            while (line != "") {
-                ptr->AddTag(line);
-
-                std::getline(std::cin, line);
-            }
+            InputHandler(InputType::add_tags, ptr);
         }
         // Remove Tag(s)
         else if (choice == 4) {
-            if (ptr->GetTags()->GetHead() == nullptr) {
-                std::cout << "Task Has No Tags" << std::endl;
-                continue;
-            }
-
-            std::cout << "Current Tags: " << std::endl;
-            PrintLinkedList(ptr->GetTags()->GetHead());
-
-            std::cout << "Tags to Remove: (leave blank to stop)" << std::endl; 
-            std::getline(std::cin, line);
-            while(line != "") {
-                ptr->RemoveTag(line);
-
-                dm.RemoveTagFromTask(line, ptr);
-
-                std::getline(std::cin, line);
-            }
+            InputHandler(InputType::remove_tags, ptr);
         }
         // Exit
         else {
@@ -238,6 +279,7 @@ void PrintMenu() {
     std::cout << "5 - Remove Entire Date" << std::endl;
     std::cout << "6 - Print All Tags" << std::endl;
     std::cout << "7 - Search Task by Tag" << std::endl;
+    std::cout << "8 - Delete All Old Tasks" << std::endl;
     std::cout << "-1 - Exit" << std::endl;
 }
 
@@ -247,41 +289,13 @@ void AddTask() {
     int dueDate = -1;
     std::string notes = "";
 
-    std::cout << "Name of Task: ";
-    std::getline(std::cin, name);
-
-    
-    // Date Parsing
-    std::string temp;
-    int month, day, year;
-    std::cout << "Due Date of Task (mm/dd/yyyy)" << std::endl;
-    std::cout << "Month: ";
-    std::cin >> month;
-    std::cout << "Day: ";
-    std::cin >> day;
-    std::cout << "Year: ";
-    std::cin >> year;
-    std::cout << std::endl;
-
-    dueDate = year * 10000 + month * 100 + day;
-    // TODO Date Verification
-
-    std::getline(std::cin, temp); // Clearing Whitespace
-
-
-    std::cout << "Notes: " << std::endl;
-    std::getline(std::cin, notes);
+    InputHandler(InputType::name, &name);
+    InputHandler(InputType::dueDate, &dueDate);
+    InputHandler(InputType::notes, &notes);
 
     Task newTask(name, dueDate, notes);
     
-    // Tags Input
-    std::cout << "Tags: (leave blank to stop)" << std::endl;
-    std::getline(std::cin, temp);
-    while (temp != "") {
-        newTask.AddTag(temp);
-
-        std::getline(std::cin, temp);
-    }
+    InputHandler(InputType::add_tags, &newTask);
 
     dm.AddTask(newTask);
 }
@@ -318,17 +332,8 @@ void UpdateTask() {
 }
 
 void RemoveWholeDate() {
-    std::cout << "Date of Task (mm/dd/yyyy)" << std::endl;
-    int month, day, year;
-    std::cout << "Month: ";
-    std::cin >> month;
-    std::cout << "Day: ";
-    std::cin >> day;
-    std::cout << "Year: ";
-    std::cin >> year;
-    std::cout << std::endl;
-
-    int deleteDate = year * 10000 + month * 100 + day;
+    int deleteDate;
+    InputHandler(InputType::dueDate, &deleteDate);
 
     dm.DeleteTasksList(deleteDate);
 }
@@ -366,17 +371,31 @@ void SearchByTag() {
     PrintTagTree(searchChain->value.GetRoot());
 }
 
+void PurgeOldTasks() {
+    std::cout << "Are you sure? (y/n)" << std::endl;
+    std::string choice;
+
+    std::getline(std::cin, choice);
+
+    if (choice == "y" || choice == "Y") {
+        dm.PurgeTree();
+        return;
+    }
+
+    std::cout << "Aborted Deletion of Old Tasks" << std::endl;
+}
+
 void Run(DataManager& loadDM, std::string fileName) {
     dm = loadDM;
 
     dm.Load(fileName);
 
     int choice = 0;
-    std::string cleaner;
+    std::string input;
     while (choice >= 0) {
         PrintMenu();
-        std::cin >> choice;
-        std::getline(std::cin, cleaner); // Whitespace clear
+        std::getline(std::cin, input);
+        choice = std::stoi(input);
         
         std::cout << std::endl;
 
@@ -410,6 +429,9 @@ void Run(DataManager& loadDM, std::string fileName) {
         }
         else if (choice == 7) {
             SearchByTag();
+        }
+        else if (choice == 8) {
+            PurgeOldTasks();
         }
         else {
             choice = -1;
