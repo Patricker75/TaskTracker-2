@@ -94,6 +94,39 @@ void PrintTask(Task* ptr) {
     PrintLinkedList(ptr->GetTags()->GetHead());
 }
 
+bool IsValidDate(int day, int month, int year) {
+    /*
+    Checks if:
+        month is in range (1-12)
+        day is range (1-31)
+            then checks for (1-28) on year(s) % 4 != 0 and month == 2
+                OR checks (1-29) on year(s) % 4 == 0 and month == 2
+            then checks for month == (4,6,9,11) for day in range (1-30) 
+    */
+    if (month < 1 || month > 12) {
+        return false;
+    }
+
+    if (day < 1 || day > 31) {
+        return false;
+    }
+
+    if (month == 2) {
+        if (day > 28 && year % 4 != 0) {
+            return false;
+        }
+        else if (day > 29) {
+            return false;
+        }
+    }
+
+    if (day > 30 && (month == 4 || month == 6 || month == 9 || month == 11)) {
+        return false;
+    }
+
+    return true;
+} 
+
 void InputHandler(InputType type, void* ptr) {
     std::string input = "";
     switch (type) {
@@ -144,8 +177,14 @@ void InputHandler(InputType type, void* ptr) {
                 std::getline(std::cin, input);
             }
             year = std::stoi(input);
-            
-            *dueDatePtr = year * 10000 + month * 100 + day;
+
+            if (IsValidDate(day, month, year)) {
+                *dueDatePtr = year * 10000 + month * 100 + day;
+            }
+            else {
+                std::cout << "Invalid Date" << std::endl;
+                InputHandler(InputType::dueDate, dueDatePtr);
+            }
             break;
         }
 
@@ -290,11 +329,14 @@ void AddTask() {
     std::string notes = "";
 
     InputHandler(InputType::name, &name);
+    std::cout << std::endl;
     InputHandler(InputType::dueDate, &dueDate);
+    std::cout << std::endl;
     InputHandler(InputType::notes, &notes);
 
     Task newTask(name, dueDate, notes);
     
+    std::cout << std::endl;
     InputHandler(InputType::add_tags, &newTask);
 
     dm.AddTask(newTask);
@@ -378,6 +420,7 @@ void PurgeOldTasks() {
     std::getline(std::cin, choice);
 
     if (choice == "y" || choice == "Y") {
+        std::cout << "Purging Old Tasks" << std::endl;
         dm.PurgeTree();
         return;
     }
@@ -419,7 +462,10 @@ void Run(DataManager& loadDM, std::string fileName) {
         }
         else if (choice == 4) {
             Task* target = SearchForTask();
-            PrintTask(target);
+            
+            if (target != nullptr) {
+                PrintTask(target);
+            }
         }
         else if (choice == 5) {
             RemoveWholeDate();
