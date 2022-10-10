@@ -25,10 +25,11 @@ private:
         // If node->data > currentDate, node->data is in the future
         // If node->data < currentDate, node->data is in the past
         if (currentDate < node->data) {
-            PurgeTree(node->left);
+            this->PurgeTree(node->left);
         }
         else if (currentDate > node->data) {
-            PurgeTree(node->left);
+            this->PurgeTree(node->left);
+            this->PurgeTree(node->right);
 
             this->DeleteTasksList(node->data.key);
         }
@@ -38,7 +39,7 @@ public:
         time_t temp = std::time(0);
         tm* now = std::gmtime(&temp); 
 
-        this->currentDate = (now->tm_year + 1900) * 10000 + now->tm_mon * 100 + now->tm_mday;
+        this->currentDate = (now->tm_year + 1900) * 10000 + (now->tm_mon + 1) * 100 + now->tm_mday;
     }
 
     // Adds a Task object to the tree
@@ -112,6 +113,10 @@ public:
     void DeleteTasksList(int dueDate) {
         // Search the tree for the TasksList
         TasksList* tasksList = this->SearchTree(dueDate);
+
+        if (tasksList == nullptr) {
+            return;
+        }
 
         // Iterate through each node in the list and remove any Task*'s in the hashTable
         Node<Task>* taskNode = tasksList->GetList()->GetHead();
