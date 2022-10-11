@@ -17,7 +17,7 @@ private:
 
     int currentDate;
 
-    void PurgeTree(Node<TasksList>* node) {
+    void PurgeTree(Node<TasksList>* node, LinkedList<int>* deleteList) {
         if (node == nullptr) {
             return;
         }
@@ -25,13 +25,13 @@ private:
         // If node->data > currentDate, node->data is in the future
         // If node->data < currentDate, node->data is in the past
         if (currentDate < node->data) {
-            this->PurgeTree(node->left);
+            this->PurgeTree(node->left, deleteList);
         }
         else if (currentDate > node->data) {
-            this->PurgeTree(node->left);
-            this->PurgeTree(node->right);
+            this->PurgeTree(node->left, deleteList);
+            this->PurgeTree(node->right, deleteList);
 
-            this->DeleteTasksList(node->data.key);
+            deleteList->Insert(node->data.key);
         }
     }
 public:
@@ -135,7 +135,15 @@ public:
     }
 
     void PurgeTree() {
-        this->PurgeTree(this->GetRoot());
+        LinkedList<int> toDelete;
+        this->PurgeTree(this->GetRoot(), &toDelete);
+
+        Node<int>* node = toDelete.GetHead();
+        while (node != nullptr) {
+            this->DeleteTasksList(node->data);
+
+            node = node->next;
+        }
     }
 
     TagsHashTable* GetHashTable() {
